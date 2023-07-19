@@ -1,0 +1,16 @@
+[api]
+timeout = 10
+change_status_uri = ""
+auth_uri = ""
+auth_user = ""
+auth_password = ""
+[pim_url]
+dev = ""
+sandbox = ""
+stage = ""
+prod = ""
+[ims_url]
+dev = ""
+sandbox = ""
+stage = ""
+prod = ""
