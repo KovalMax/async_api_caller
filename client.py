@@ -7,9 +7,10 @@ from config import Environment, Configuration
 
 
 class StatusChangeResult:
-    def __init__(self, info: str, succeed: bool = False):
-        self.succeed = succeed
+    def __init__(self, info: str, model: StatusChangeModel, succeed: bool = False):
         self.info = info
+        self.model = model
+        self.succeed = succeed
 
 
 class StatusChangeModel:
@@ -21,7 +22,11 @@ class StatusChangeModel:
         self.status_reason = status_reason
 
     def to_json(self) -> dict[str, str | None]:
-        return {'status': self.status, 'statusReason': self.status_reason, 'market': self.market.upper()}
+        json = {'status': self.status, 'market': self.market.upper()}
+        if self.status_reason:
+            json['statusReason'] = self.status_reason
+
+        return json
 
 
 class BaseClient:
@@ -90,10 +95,12 @@ class StatusChangeService:
             reason = model.status_reason if model.status_reason else 'None'
             info = self.success.format(mid=model.mid, status=model.status, market=model.market, reason=reason)
 
-            return StatusChangeResult(succeed=True, info=info)
+            result = StatusChangeResult(succeed=True, info=info, model=model)
         except ConnectionError as api_error:
-            return StatusChangeResult(info=str(api_error))
+            result = StatusChangeResult(info=str(api_error), model=model)
         except Exception as e:
             error = str(e) if str(e) else e.__repr__()
 
-            return StatusChangeResult(info=self.error.format(mid=model.mid, error=error))
+            result = StatusChangeResult(info=self.error.format(mid=model.mid, error=error), model=model)
+
+        return result
