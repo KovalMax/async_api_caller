@@ -1,8 +1,8 @@
 from __future__ import annotations
-
+import ssl
 import aiohttp
+import certifi
 import requests
-
 from config import Environment, Configuration
 
 
@@ -22,7 +22,7 @@ class StatusChangeModel:
         self.status_reason = status_reason
 
     def to_json(self) -> dict[str, str | None]:
-        json = {'status': self.status, 'market': self.market.upper()}
+        json = {'status': self.status}
         if self.status_reason:
             json['statusReason'] = self.status_reason
 
@@ -31,7 +31,7 @@ class StatusChangeModel:
 
 class BaseClient:
     def __init__(self, env: Environment, config: Configuration):
-        self.auth_token: str = None
+        self.auth_token: str = ''
         self.__env = env
         self.__config = config
         self.base_url: str = config.pim_url(env)
@@ -44,9 +44,9 @@ class BaseClient:
 
         url = f'{self.base_url}/{uri}'
         headers = {'Content-Type': 'application/json', 'Authorization': self.auth_token}
-
+        context = ssl.create_default_context(cafile=certifi.where())
         async with aiohttp.ClientSession(headers=headers, timeout=self.timeout) as session:
-            async with session.patch(url, json=json_body) as response:
+            async with session.put(url, json=json_body, ssl=context) as response:
                 await response.read()
 
                 return response
@@ -80,7 +80,7 @@ class StatusChangeService:
         self.client = client
 
     async def change_status(self, model: StatusChangeModel) -> StatusChangeResult:
-        uri = self.change_status_uri.format(id=model.id_item)
+        uri = self.change_status_uri.format(id=model.id_item, market=model.market)
 
         try:
             response = await self.client.send_patch(uri, model.to_json())
