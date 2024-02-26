@@ -23,15 +23,14 @@ async def task_runner():
     re_try = []
     for coroutine in asyncio.as_completed(tasks):
         result = await coroutine
-
-        print(result.info)
         if not result.succeed:
             re_try.append(result.model)
             failed_tasks += 1
+            continue
+
+        print(result.info)
 
     if len(re_try) > 0:
-        print(f'--- Trying to execute re-try for {failed_tasks} failed ones ---')
-
         await asyncio.sleep(5)
         re_try = [event_loop.create_task(task(row, semaphore)) for row in re_try]
         for coroutine in asyncio.as_completed(re_try):

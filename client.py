@@ -60,8 +60,6 @@ class BaseClient:
         while retries > 0:
             response = requests.post(url, json=body, headers=headers, timeout=self.__config.api_timeout())
             if response.status_code != 200:
-                print(
-                    f'Calling {self.__config.auth_uri()} failed, code - {response.status_code}, body - {response.text}')
                 retries -= 1
                 continue
 
