@@ -18,6 +18,7 @@ class ApiMap(TypedDict):
     auth_user: str
     auth_password: str
     change_status_uri: str
+    golden_record_uri: str
 
 
 class UrlEnvMap(TypedDict):
@@ -31,6 +32,7 @@ class ConfigMap(TypedDict):
     api: ApiMap
     pim_url: UrlEnvMap
     ims_url: UrlEnvMap
+    gr_url: UrlEnvMap
 
 
 class Configuration:
@@ -40,6 +42,9 @@ class Configuration:
 
     def change_status_uri(self) -> str:
         return self.__entries['api']['change_status_uri']
+
+    def golden_record_uri(self) -> str:
+        return self.__entries['api']['golden_record_uri']
 
     def auth_uri(self) -> str:
         return self.__entries['api']['auth_uri']
@@ -55,6 +60,12 @@ class Configuration:
             raise Exception(f'PIM url for provided env({env.value}) not found')
 
         return self.__entries['pim_url'][env.value]
+
+    def gr_url(self, env: Environment) -> str:
+        if env.value not in self.__entries['gr_url']:
+            raise Exception(f'GR url for provided env({env.value}) not found')
+
+        return self.__entries['gr_url'][env.value]
 
     def api_timeout(self) -> float:
         return self.__entries['api']['timeout']
